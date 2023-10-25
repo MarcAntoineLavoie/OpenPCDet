@@ -1,10 +1,13 @@
-FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+# FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+FROM nvidia/cuda:12.0.1-cudnn8-devel-ubuntu18.04
+ENV DEBIAN_FRONTEND=noninteractive
+
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 ARG CMAKE_VERSION=3.16
 ARG CMAKE_BUILD=5
-ARG PYTHON_VERSION=3.6
+ARG PYTHON_VERSION=3.7
 ARG TORCH_VERSION=1.7
 ARG TORCHVISION_VERSION=0.8.1
 
@@ -22,7 +25,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # tools
 # ------------------------------------------------------------------
 
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+    apt-get install -y --no-install-recommends \
         build-essential \
         apt-utils \
         ca-certificates \
@@ -40,33 +43,33 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     tar -C ~/ -xzf ~/cmake.tar.gz && \
     cd ~/cmake-${CMAKE_VERSION}.${CMAKE_BUILD} && \
     ./bootstrap && \
-    make -j$(nproc) install && \
+    make -j$(nproc) install
 
 # ==================================================================
 # python
 # ------------------------------------------------------------------
 
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+RUN apt-get install -y --no-install-recommends \
         software-properties-common \
         && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+    apt-get install -y --no-install-recommends \
         python${PYTHON_VERSION} \
         python${PYTHON_VERSION}-dev \
         python3-distutils-extra \
         && \
     wget -O ~/get-pip.py \
         https://bootstrap.pypa.io/get-pip.py && \
-    python3.6 ~/get-pip.py && \
+    python${PYTHON_VERSION} ~/get-pip.py && \
     ln -s /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python3 && \
-    ln -s /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python && \
+    ln -s /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python
 
 # ==================================================================
 # dependencies
 # ------------------------------------------------------------------
 
-    $PIP_INSTALL \
+RUN pip --no-cache-dir install --upgrade \
         cachetools \
         easydict \
         enum34 \
@@ -89,39 +92,39 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         shapely \
         tensorboardX \
         tqdm \
-        typing \
-        && \
+        typing
+        
 
 # ==================================================================
 # pytorch
 # ------------------------------------------------------------------
 
-    $PIP_INSTALL \
+RUN pip --no-cache-dir install --upgrade \
         torch==$TORCH_VERSION \
-        torchvision==$TORCHVISION_VERSION \
-        && \
+        torchvision==$TORCHVISION_VERSION
+        
 
 # ==================================================================
 # spconv
 # ------------------------------------------------------------------
 
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+RUN apt-get install -y --no-install-recommends \
         libsm6 libxext6 libxrender-dev \
         libboost-all-dev && \
 
-    $GIT_CLONE https://github.com/traveller59/spconv.git \
+    git clone --recursive https://github.com/traveller59/spconv.git \
         ~/spconv && \
     cd ~/spconv && \
     git checkout f22dd9aee04e2fe8a9fe35866e52620d8d8b3779 && \
     SPCONV_FORCE_BUILD_CUDA=1 \
     python setup.py bdist_wheel && \
-    $PIP_INSTALL ~/spconv/dist/spconv-*.whl && \
+    pip --no-cache-dir install --upgrade ~/spconv/dist/spconv-*.whl
 
 # ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
 
-    cd && \
+RUN cd && \
     ldconfig && \
     apt-get clean && \
     apt-get autoremove && \
