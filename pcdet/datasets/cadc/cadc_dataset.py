@@ -9,9 +9,9 @@ from skimage import io
 from pathlib import Path
 import torch
 
-from ...utils import box_utils, common_utils
-from ..dataset import DatasetTemplate
-from ...ops.roiaware_pool3d import roiaware_pool3d_utils
+from pcdet.utils import box_utils, common_utils
+from pcdet.datasets.dataset import DatasetTemplate
+from pcdet.ops.roiaware_pool3d import roiaware_pool3d_utils
 from pcdet.config import cfg
 from pcdet.datasets.cadc import cadc_calibration
 
@@ -543,11 +543,17 @@ def create_cadc_infos(dataset_cfg, class_names, data_path, save_path, workers=8)
 
 if __name__ == '__main__':
     import sys
+    if len(sys.argv) == 1:
+        sys.argv.append('create_cadc_infos')
+        sys.argv.append('tools/cfgs/dataset_configs/cadc_dataset.yaml')
+        ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
+    else:
+        ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
     if sys.argv.__len__() > 1 and sys.argv[1] == 'create_cadc_infos':
         import yaml
         from pathlib import Path
         from easydict import EasyDict
-        dataset_cfg = EasyDict(yaml.load(open(sys.argv[2])))
+        dataset_cfg = EasyDict(yaml.safe_load(open(sys.argv[2])))
         ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
         create_cadc_infos(
             dataset_cfg=dataset_cfg,
