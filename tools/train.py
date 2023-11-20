@@ -53,7 +53,7 @@ def parse_config():
     parser.add_argument('--batch_size', type=int, default=6, required=False, help='batch size for training')
     parser.add_argument('--epochs', type=int, default=50, required=False, help='number of epochs to train for')
     parser.add_argument('--cfg_file', type=str, default='cfgs/cadc_models/pointpillar.yaml', help='specify the config for training')
-    parser.add_argument('--ckpt', type=str, default='/OpenPCDet/output/cadc_models/pointpillar/default/ckpt/checkpoint_epoch_3.pth', help='checkpoint to start from')
+    parser.add_argument('--ckpt', type=str, default=None, help='checkpoint to start from')
 
     args = parser.parse_args()
 
